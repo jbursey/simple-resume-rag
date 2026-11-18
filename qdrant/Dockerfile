@@ -1,1 +1,1 @@
-FROM qdrant/qdrant
+FROM docker.io/qdrant/qdrant
