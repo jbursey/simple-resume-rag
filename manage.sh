@@ -31,8 +31,7 @@ case "$ACTION" in
         echo "========================"
         podman container run --name local-container-ollama --network local-llm-network -d -v ollama_data:/root/.ollama -p "11434:11434" local-ollama
         podman container run --name local-container-mysql --network local-llm-network -d -p "3306:3306" local-mysql
-        podman container run --name local-container-qdrant --network local-llm-network -d -p "6333:6333" -p "6334:6334" local-qdrant
-        podman container run --name local-container-web --network local-llm-network -d -v ./web/:/app -p "8000:8000" local-web
+        podman container run --name local-container-qdrant --network local-llm-network -d -p "6333:6333" -p "6334:6334" local-qdrant        
 
         echo ""
 
@@ -79,6 +78,11 @@ case "$ACTION" in
         podman container exec local-container-ollama ollama list 
 
         echo ""
+
+        echo "====================="
+        echo "==== Starting Web App"
+        echo "====================="
+        podman container run --name local-container-web --network local-llm-network -d -v ./web/:/app -p "8000:8000" local-web
 
         echo "========="
         echo "==== Urls"
