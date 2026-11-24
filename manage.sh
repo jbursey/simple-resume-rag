@@ -29,19 +29,26 @@ case "$ACTION" in
         echo "========================"
         echo "==== Starting Containers"
         echo "========================"
-        podman container run --name local-container-ollama -v ollama_data:/root/.ollama -d -p "11434:11434" local-ollama
-        podman container run --name local-container-mysql -d -p "3306:3306" local-mysql
-        podman container run --name local-container-qdrant -d -p "6333:6333" -p "6334:6334" local-qdrant
-        podman container run --name local-container-web -d -v ./web/:/app -p "8000:8000" local-web
+        podman container run --name local-container-ollama --network local-llm-network -d -v ollama_data:/root/.ollama -p "11434:11434" local-ollama
+        podman container run --name local-container-mysql --network local-llm-network -d -p "3306:3306" local-mysql
+        podman container run --name local-container-qdrant --network local-llm-network -d -p "6333:6333" -p "6334:6334" local-qdrant
+        podman container run --name local-container-web --network local-llm-network -d -v ./web/:/app -p "8000:8000" local-web
 
         echo ""
 
         echo "=================================="
         echo "==== Waiting for MySQL Readiness"
         echo "=================================="
-        until podman container exec local-container-mysql mysql -u root -ppasswordllm -e "SELECT 1;" &>/dev/null; do
+        checks=0
+        until [ "$checks" -ge 2 ]; do
+        if podman container exec local-container-mysql mysql -u root -ppasswordllm -e "SELECT 1;" >/dev/null 2>&1; then
+            checks=$((checks + 1))
+        else
+            checks=0
             sleep 2
             echo -n "."
+        fi
+        [ "$checks" -lt 2 ] && sleep 1
         done
         echo " MySQL is up!"
 
